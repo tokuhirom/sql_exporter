@@ -126,38 +126,43 @@ func (e *Exporter) collect(ch chan<- prometheus.Metric) error {
 	}
 
 	for i, query := range e.config.Queries {
-		log.Debugf("Running query: %s", query.SQL)
-
-		rows, err := e.db.Query(query.SQL)
-		if err != nil {
-			return err
-		}
-		defer rows.Close()
-
-		cols, err := rows.Columns()
-		if err != nil {
-			return err
-		}
-
-		pointers := make([]interface{}, len(cols))
-		container := make([]string, len(cols)-1)
-		var value float64
-		pointers[0] = &value
-		for j := range container {
-			pointers[j+1] = &container[j]
-		}
-
-		for rows.Next() {
-			err = rows.Scan(pointers...)
-			if err != nil {
-				return err
-			}
-			log.Debugf("Result[%d]: %s, %s", i, container, value)
-			e.counters[i].WithLabelValues(container...).Set(value)
-		}
-		e.counters[i].Collect(ch)
+		e.collectQuery(i, query, ch)
 	}
 
+	return nil
+}
+
+func (e *Exporter) collectQuery(i int, query Query, ch chan<- prometheus.Metric) error {
+	log.Debugf("Running query: %s", query.SQL)
+
+	rows, err := e.db.Query(query.SQL)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	cols, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+
+	pointers := make([]interface{}, len(cols))
+	container := make([]string, len(cols)-1)
+	var value float64
+	pointers[0] = &value
+	for j := range container {
+		pointers[j+1] = &container[j]
+	}
+
+	for rows.Next() {
+		err = rows.Scan(pointers...)
+		if err != nil {
+			return err
+		}
+		log.Debugf("Result[%d]: %s, %s", i, container, value)
+		e.counters[i].WithLabelValues(container...).Set(value)
+	}
+	e.counters[i].Collect(ch)
 	return nil
 }
 
