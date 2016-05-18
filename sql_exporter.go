@@ -26,7 +26,7 @@ var (
 )
 
 type Query struct {
-	Sql  string `yaml:"sql"`
+	SQL  string `yaml:"sql"`
 	Name string `yaml:"name"`
 	Help string `yaml:"help"`
 }
@@ -85,20 +85,20 @@ func GetCounters(config *Config, db *sql.DB) ([]*prometheus.CounterVec, error) {
 	retval := make([]*prometheus.CounterVec, len(config.Queries))
 
 	for i, query := range config.Queries {
-		rows, err := db.Query(query.Sql)
+		rows, err := db.Query(query.SQL)
 		if err != nil {
 			return nil, err
 		}
 		defer rows.Close()
 
-		log.Debugf("Running query: %s", query.Sql)
+		log.Debugf("Running query: %s", query.SQL)
 
 		cols, err := rows.Columns()
 		if err != nil {
 			return nil, err
 		}
 
-		log.Debugf("Columns: %s => %s", query.Sql, cols[1:])
+		log.Debugf("Columns: %s => %s", query.SQL, cols[1:])
 		counter := prometheus.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace: namespace,
@@ -126,9 +126,9 @@ func (e *Exporter) collect(ch chan<- prometheus.Metric) error {
 	}
 
 	for i, query := range e.config.Queries {
-		log.Debugf("Running query: %s", query.Sql)
+		log.Debugf("Running query: %s", query.SQL)
 
-		rows, err := e.db.Query(query.Sql)
+		rows, err := e.db.Query(query.SQL)
 		if err != nil {
 			return err
 		}
