@@ -143,7 +143,7 @@ func (e *Exporter) collect(ch chan<- prometheus.Metric) error {
 		container := make([]string, len(cols)-1)
 		var value float64
 		pointers[0] = &value
-		for j, _ := range container {
+		for j := range container {
 			pointers[j+1] = &container[j]
 		}
 
