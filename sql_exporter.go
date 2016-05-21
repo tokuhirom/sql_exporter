@@ -70,7 +70,7 @@ func NewExporter(config *Config, db *sql.DB) (*Exporter, error) {
 		scrapeFailures: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Name:      "exporter_scrape_failures_total",
-			Help:      "Number of errors while scraping apache.",
+			Help:      "Number of errors while scraping sql.",
 		}),
 		counters: counters,
 	}, nil
