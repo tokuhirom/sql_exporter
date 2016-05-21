@@ -85,15 +85,7 @@ func GetCounters(config *Config, db *sql.DB) ([]*prometheus.CounterVec, error) {
 	retval := make([]*prometheus.CounterVec, len(config.Queries))
 
 	for i, query := range config.Queries {
-		rows, err := db.Query(query.SQL)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-
-		log.Debugf("Running query: %s", query.SQL)
-
-		cols, err := rows.Columns()
+		cols, err := getColumns(query.SQL, db)
 		if err != nil {
 			return nil, err
 		}
@@ -110,6 +102,18 @@ func GetCounters(config *Config, db *sql.DB) ([]*prometheus.CounterVec, error) {
 		retval[i] = counter
 	}
 	return retval, nil
+}
+
+func getColumns(sql string, db *sql.DB) ([]string, error) {
+	rows, err := db.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	log.Debugf("Running query: %s", sql)
+
+	return rows.Columns()
 }
 
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
